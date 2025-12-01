@@ -1,0 +1,4 @@
+fastapi
+uvicorn[standard]
+sqlalchemy  # Para manejar la base de datos (ORM)
+psycopg2-binary # Driver para conectar con PostgreSQL
