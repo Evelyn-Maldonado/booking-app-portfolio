@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models
-import schemas # <--- Importamos los esquemas nuevos
+import schemas 
 from database import engine, get_db
 
 # Crea las tablas
@@ -30,6 +30,13 @@ def create_user(email: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+# Agregar esto en main.py
+@app.get("/appointments/", response_model=list[schemas.AppointmentResponse])
+def read_appointments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    appointments = db.query(models.Appointment).offset(skip).limit(limit).all()
+    return appointments
 
 # --- EL CORAZÓN DEL SISTEMA: Crear Reserva ---
 @app.post("/appointments/", response_model=schemas.AppointmentResponse)

@@ -1,35 +1,39 @@
 version: '3.8'
 
 services:
-  # 1. Base de Datos (PostgreSQL)
   db:
     image: postgres:15-alpine
     container_name: booking_db
-    restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: booking_system
-    ports:
-      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistencia de datos
+      - postgres_data:/var/lib/postgresql/data
+    # 2. Conectamos el servicio a la red interna
+    networks:
+      - red_booking_interna
 
-# 2. Backend (API Python)
   api:
     build: ./server
     container_name: booking_api
     ports:
-      - "8000:8000" # Cambio de puerto a 8000
+      - "8000:8000"
     depends_on:
       - db
     environment:
-      # Connection String para SQLAlchemy
-      # Formato: postgresql://usuario:password@host:puerto/nombre_bd
       DATABASE_URL: postgresql://admin:password123@db:5432/booking_system
     volumes:
       - ./server:/app
+    # 2. Conectamos el servicio a la red interna
+    networks:
+      - red_booking_interna
 
-# Volúmenes globales
 volumes:
   postgres_data:
+
+# 1. Definición Global de la Red
+networks:
+  red_booking_interna:      # Nombre de variable DENTRO de este archivo
+    name: booking_network   # Nombre REAL que verás en Docker (docker network ls)
+    driver: bridge          # (Opcional) El tipo estándar es bridge
