@@ -22,21 +22,31 @@ def create_service(service: schemas.ServiceCreate, db: Session = Depends(get_db)
     db.refresh(new_service)
     return new_service
 
-# --- Endpoint para crear Usuarios (Rápido para probar) ---
-@app.post("/users/")
-def create_user(email: str, db: Session = Depends(get_db)):
-    new_user = models.User(email=email, role="client")
+# 1. Agregamos response_model para filtrar la salida (que no muestre passwords)
+@app.post("/users/", response_model=schemas.UserResponse) 
+# 2. Cambiamos "email: str" por "user: schemas.UserCreate"
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)): 
+    
+    # Validamos si ya existe (Opcional pero recomendado)
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+
+    # Simulamos el hash del password (lo haremos real luego)
+    fake_hashed_password = user.password + "notreallyhashed"
+
+    # Creamos el modelo de BD usando los datos del esquema
+    new_user = models.User(
+        email=user.email, 
+        hashed_password=fake_hashed_password, # Guardamos el hash
+        role=user.role # Usamos el rol que viene en el esquema (o el default)
+    )
+    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    
     return new_user
-
-
-# Agregar esto en main.py
-@app.get("/appointments/", response_model=list[schemas.AppointmentResponse])
-def read_appointments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    appointments = db.query(models.Appointment).offset(skip).limit(limit).all()
-    return appointments
 
 # --- EL CORAZÓN DEL SISTEMA: Crear Reserva ---
 @app.post("/appointments/", response_model=schemas.AppointmentResponse)

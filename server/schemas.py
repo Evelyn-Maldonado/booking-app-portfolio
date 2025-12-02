@@ -1,6 +1,27 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+# 1. Base: Datos comunes que siempre están
+class UserBase(BaseModel):
+    email: str
+
+# 2. Input: Lo que el usuario envía para registrarse
+# AQUÍ es donde definimos que la contraseña es OBLIGATORIA
+class UserCreate(UserBase):
+    password: str   # <--- ¡Esta es la línea clave que hará aparecer el campo!
+    role: str = "client" # Opcional, por defecto es cliente
+
+# 3. Output: Lo que la API responde al frontend
+# IMPORTANTE: Aquí NO ponemos el password para no devolverlo en el JSON
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+    role: str
+    
+    class Config:
+        from_attributes = True
+
+
 # Esquema para crear un Servicio (lo que envía el usuario)
 class ServiceCreate(BaseModel):
     name: str

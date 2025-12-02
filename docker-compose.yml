@@ -10,7 +10,10 @@ services:
       POSTGRES_DB: booking_system
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # 2. Conectamos el servicio a la red interna
+  
+    ports:
+      - "5432:5432"
+   
     networks:
       - red_booking_interna
 
@@ -25,15 +28,13 @@ services:
       DATABASE_URL: postgresql://admin:password123@db:5432/booking_system
     volumes:
       - ./server:/app
-    # 2. Conectamos el servicio a la red interna
     networks:
       - red_booking_interna
 
 volumes:
   postgres_data:
 
-# 1. Definición Global de la Red
 networks:
-  red_booking_interna:      # Nombre de variable DENTRO de este archivo
-    name: booking_network   # Nombre REAL que verás en Docker (docker network ls)
-    driver: bridge          # (Opcional) El tipo estándar es bridge
+  red_booking_interna:
+    name: booking_network
+    driver: bridge
